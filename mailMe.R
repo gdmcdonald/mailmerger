@@ -12,7 +12,7 @@ html_doc <- read_file(here::here("TemplateEmail.html"))
 subject_line <- read_file(here::here("TemplateSubjectLine.txt"))
 from_email_address <- "from@email.com"
 
-
+# Adds columns to 'contactList' with the emplates, after they've been replaced for each person
 addTemplateWithReplacements <- function(contactList=contactList,
                                         html_doc=html_doc,
                                         subject_line=subject_line){
@@ -37,8 +37,9 @@ addTemplateWithReplacements <- function(contactList=contactList,
   
 }
 
-
-saveDemoEmail <- function(contactListWithHtml,which_one = 1){
+# Function to check the template replacements before sending.
+saveDemoEmail <- function(contactListWithHtml=contactListWithHtml,
+                          which_one = 1){
   
   email_content<-contactListWithHtml$my_html_doc[which_one]
   fwrite(list(email_content),
@@ -50,6 +51,19 @@ saveDemoEmail <- function(contactListWithHtml,which_one = 1){
          quote = F)
 }
 
+# Function to send the all the emails
+sendThemAll <- function(contacts_with_html=contactListWithHtml,
+                        from_address=from_email_address){
+  for ( i in 1:nrow(contacts_with_html) ) {
+    mime() %>%
+      subject(contacts_with_html[i,"my_subject"][[1]]) %>%
+      to(contacts_with_html[i,"Email"][[1]]) %>%
+      from(from_address) %>%
+      html_body(contacts_with_html[i,"my_html_doc"][[1]])%>%
+      send_message()
+  }
+}
+
 
 contactListWithHtml <- addTemplateWithReplacements(contactList=contactList,
                                                    html_doc=html_doc,
@@ -57,15 +71,9 @@ contactListWithHtml <- addTemplateWithReplacements(contactList=contactList,
 
 saveDemoEmail(contactListWithHtml,1)
 
+sendThemAll()
 
 #This bit sends all the emails
-for ( i in 1:nrow(contactListWithHtml) ) {
-  mime() %>%
-    subject(contactListWithHtml[i,"my_subject"][[1]]) %>%
-    to(contactListWithHtml[i,"Email"][[1]]) %>%
-    from(from_email_address) %>%
-    html_body(contactListWithHtml[i,"my_html_doc"][[1]])%>%
-    send_message()
-}
+
 
 
